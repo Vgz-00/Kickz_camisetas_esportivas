@@ -1,0 +1,116 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+model Cliente {
+  id             Int          @id @default(autoincrement())
+  nome           String       @db.VarChar(100)
+  email          String       @unique  
+  senha          String  
+  pedido         Pedido[]
+  logs           Log[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt() 
+ 
+  @@map("clientes")
+}
+
+model Admin {
+
+  id             Int          @id @default(autoincrement())
+  nome           String       @db.VarChar(100)
+  email          String       @unique  
+  senha          String  
+  logs  Log[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt()
+ 
+  @@map("admins")
+}
+
+model Log{
+  id           Int     @id @default(autoincrement())
+  clienteId    Int?
+  cliente      Cliente?  @relation(fields: [clienteId], references: [id])
+  adminId      Int?
+  admin        Admin?  @relation(fields: [adminId], references: [id])
+  status       PadraoLogs
+  descricao    String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt()
+}
+
+model Camisa {
+  id             Int          @id @default(autoincrement())
+  modelo         String       @db.VarChar(30)
+  preco          Decimal      @db.Decimal(10, 2)
+  foto           String       
+  categoria      Categoria    
+  destaque       Boolean      @default(true)
+  marcaId        Int
+  marca          Marca        @relation(fields: [marcaId], references: [id])
+  itens          ItensPedido[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt()
+  @@map("camisas")
+}
+    
+model Marca {
+  id             Int         @id @default(autoincrement())
+  nome           String      @db.VarChar(30)
+  camisa         Camisa[]
+  foto           String
+  @@map("marcas")  
+}
+
+enum Categoria {
+  RETRO
+  TORCEDOR
+  JOGO
+  COMEMORATIVA
+}
+
+model Pedido {
+  id             Int          @id @default(autoincrement())
+  cliente        Cliente      @relation(fields: [clienteId], references: [id])    
+  clienteId      Int
+  itens          ItensPedido[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt()
+  @@map("pedidos")
+}
+
+model ItensPedido {
+   id              Int   @id @default(autoincrement())
+   pedidoId        Int
+   pedido          Pedido @relation(fields: [pedidoId], references: [id])
+   camisaId        Int
+   camisa          Camisa       @relation(fields: [camisaId], references: [id]) 
+   quantidade Int  @default(1)
+   preco  Decimal  @db.Decimal(10, 2)
+}
+
+enum StatusPedido {
+  PENDENTE
+  PAGO
+  ENVIADO
+  CANCELADO
+}
+
+enum PadraoLogs {
+  CRIAR_PEDIDO
+  ATUALIZAR_STATUS
+  LOGIN
+}
+
