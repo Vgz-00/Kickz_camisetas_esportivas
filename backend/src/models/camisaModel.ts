@@ -11,4 +11,14 @@ export const camisaModel = {
         prisma.camisa.update({where: { id }, data}), 
     
     delete: (id: number) => prisma.camisa.delete({ where: { id } }),
+
+    search: (where: any) => prisma.camisa.findMany({
+        where,
+        include: { marca: true }
+    }),
+
+    findById: (id: number) => prisma.camisa.findUnique({
+        where: { id },
+        include: { marca: true }
+    }),
 } 

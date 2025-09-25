@@ -52,3 +52,51 @@ export const deleteCamisa = async (req: Request, res: Response) => {
         
     }
 }
+
+
+export const searchCamisa = async (req: Request, res: Response) => {
+    try {
+        const { termo } = req.params;
+        const termoNumero = Number(termo);
+
+        if (isNaN(termoNumero)) {
+            
+            const camisas = await camisaModel.search({
+                OR: [
+                    { modelo: { contains: termo, mode: "insensitive" } },
+                    { marca: { nome: { equals: termo, mode: "insensitive" } } }
+                ]
+            });
+            return res.status(200).json(camisas);
+        }
+
+        if (termoNumero <= 3000) {
+           
+            const camisas = await camisaModel.search({
+                ano: termoNumero
+            });
+            return res.status(200).json(camisas);
+        }
+
+        const camisas = await camisaModel.search({
+            preco: { lte: termoNumero }
+        });
+        return res.status(200).json(camisas);
+
+    } catch (error) {
+        return res.status(500).json({ error });
+    }
+};
+
+export const getCamisaById = async (req: Request, res: Response) => {
+    try {
+        const id = Number(req.params.id);
+        const camisa = await camisaModel.findById(id);
+        if (!camisa) {
+            return res.status(404).json({ message: "Camisa não encontrada." });
+        }
+        return res.status(200).json(camisa);
+    } catch (error) {
+        return res.status(500).json({ error: "Erro ao buscar a camisa." });
+    }
+}

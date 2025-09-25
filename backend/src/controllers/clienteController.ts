@@ -39,30 +39,44 @@ export const listCliente = async (req: Request, res: Response) => {
     } 
 } 
 
-
 export const loginCliente = async (req: Request, res: Response) => {
-    try {
+  try {
+    const { email, senha } = req.body; // pega direto do body
 
-        const { email, senha } = loginSchema.parse(req.body);
-
-        const cliente = await clienteModel.findByEmail(email);
-        if (!cliente) {
-            return res.status(401).json({error: "Email ou senha invalidos"});
-        }
-
-        const senhaValida = await bcrypt.compare(senha, cliente.senha);
-        if (!senhaValida) {
-            return res.status(401).json({error: "Email ou senha invalidos"});
-        }
-        
-        const token = jwt.sign(
-            {id: cliente.id, email: cliente.email },
-            process.env.JWT_KEY as string,
-            {expiresIn: "3h"}
-        );
-
-        return res.status(200).json({message: "Login feito com sucesso", token})
-    } catch (error) {
-        return res.status(400).json({error: error})        
+    if (!email || !senha) {
+      return res.status(400).json({ error: "Informe email e senha" });
     }
+
+    // busca cliente pelo e-mail
+    const cliente = await clienteModel.findByEmail(email);
+    if (!cliente) {
+      return res.status(401).json({ error: "E-mail ou senha inválidos" });
+    }
+
+    // compara senha
+    const senhaValida = await bcrypt.compare(senha, cliente.senha);
+    if (!senhaValida) {
+      return res.status(401).json({ error: "E-mail ou senha inválidos" });
+    }
+
+    // gera token
+    const token = jwt.sign(
+      { id: cliente.id, email: cliente.email },
+      process.env.JWT_KEY as string,
+      { expiresIn: "3h" }
+    );
+
+    // remove a senha do retorno
+    const { senha: _, ...clienteSemSenha } = cliente;
+
+    return res.status(200).json({
+      token,
+      cliente: clienteSemSenha,
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      error: error instanceof Error ? error.message : "Erro no login",
+    });
+  }
 };

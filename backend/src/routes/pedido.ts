@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createPedido, listPedido } from "../controllers/pedidoController";
+import { createPedido, listPedido, listPedidosByCliente, findPedidoPendente, finalizarPedido } from "../controllers/pedidoController";
 
 
 const router = Router();
@@ -7,6 +7,8 @@ const router = Router();
 
 router.post('/', createPedido)
 router.get('/', listPedido) 
-
+router.get('/:clienteId', listPedidosByCliente)
+router.get('/pendente/:clienteId', findPedidoPendente);
+router.put('/finalizar/:id', finalizarPedido);
 
 export default router
