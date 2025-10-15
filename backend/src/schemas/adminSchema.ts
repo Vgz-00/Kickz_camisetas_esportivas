@@ -7,6 +7,7 @@ export const adminSchema = z.object({
   senha: z.string().min(6, {
     message: "Senha deve ter no mínimo 6 caracteres",
   }),
+  nivel: z.number().min(1, {message: "Nivel, no minimo, 1"}).min(5, {message: "Nivel, no maximo, 5"}),
   email: z.string().email({message: "Formato de email inválido"}),
 })
 

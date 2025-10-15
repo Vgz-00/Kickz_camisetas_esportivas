@@ -14,10 +14,10 @@ datasource db {
 }
 
 model Cliente {
-  id             Int          @id @default(autoincrement())
+  id             String       @db.VarChar(36) @id @default(uuid())
   nome           String       @db.VarChar(100)
-  email          String       @unique  
-  senha          String  
+  email          String       @db.VarChar(255) @unique  
+  senha          String       @db.VarChar(60)  
   pedido         Pedido[]
   logs           Log[]
   createdAt      DateTime     @default(now())
@@ -28,22 +28,25 @@ model Cliente {
 
 model Admin {
 
-  id             Int          @id @default(autoincrement())
+  id             String       @db.VarChar(36) @id @default(uuid())
   nome           String       @db.VarChar(100)
-  email          String       @unique  
-  senha          String  
+  email          String       @db.VarChar(255)  
+  senha          String       @db.VarChar(60)
+  nivel          Int          @db.SmallInt @default(2) 
   logs  Log[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt()
- 
+  camisas       Camisa[]
+  pedidos       Pedido[]
+
   @@map("admins")
 }
 
 model Log{
   id           Int     @id @default(autoincrement())
-  clienteId    Int?
+  clienteId    String?   @db.VarChar(36)
   cliente      Cliente?  @relation(fields: [clienteId], references: [id])
-  adminId      Int?
+  adminId      String?
   admin        Admin?  @relation(fields: [adminId], references: [id])
   status       PadraoLogs
   descricao    String
@@ -63,6 +66,8 @@ model Camisa {
   itens          ItensPedido[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt()
+  admin          Admin?  @relation(fields: [adminId], references: [id]) 
+  adminId        String?      @db.VarChar(36)
   @@map("camisas")
 }
     
@@ -84,11 +89,14 @@ enum Categoria {
 model Pedido {
   id             Int          @id @default(autoincrement())
   cliente        Cliente      @relation(fields: [clienteId], references: [id])    
-  clienteId      Int
+  clienteId      String
   itens          ItensPedido[]
   status         StatusPedido @default(PENDENTE)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt()
+  admin          Admin?  @relation(fields: [adminId], references: [id]) 
+  adminId        String?      @db.VarChar(36)
+  
   @@map("pedidos")
 }
 

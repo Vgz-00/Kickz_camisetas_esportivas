@@ -2,8 +2,8 @@ import { z } from "zod";
 import { PadraoLogs } from "@prisma/client";
 
 export const logSchema = z.object({
-    clienteId: z.number().int().positive().optional(),
-    adminId: z.number().int().positive().optional(),
+    clienteId: z.string().optional(),
+    adminId: z.string().optional(),
     descricao: z.string().optional(),
     status: z.nativeEnum(PadraoLogs)
 })
