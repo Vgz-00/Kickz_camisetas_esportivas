@@ -5,7 +5,7 @@ import { LogInput } from "../schemas/logSchema"
 
 export const logModel = {
 
-  create: (data: Prisma.LogitgUncheckedCreateInput) => prisma.log.create({ data }),
+  create: (data: Prisma.LogUncheckedCreateInput) => prisma.log.create({ data }),
   
   listAll: () => prisma.log.findMany({ include: { cliente: true, admin: true } }) 
 

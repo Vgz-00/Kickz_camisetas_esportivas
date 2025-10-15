@@ -12,7 +12,7 @@ export const pedidoModel = {
     data: { status }
   }),
   
-  findPendente: (clienteId: number) => prisma.pedido.findFirst({
+  findPendente: (clienteId: string) => prisma.pedido.findFirst({
     where: { 
       clienteId,
       status: 'PENDENTE' 
@@ -22,7 +22,7 @@ export const pedidoModel = {
     }
   }),
 
-  listByCliente: (clienteId: number) => prisma.pedido.findMany({
+  listByCliente: (clienteId: string) => prisma.pedido.findMany({
   where: { clienteId },
   include: {
     itens: { include: { camisa: true } },

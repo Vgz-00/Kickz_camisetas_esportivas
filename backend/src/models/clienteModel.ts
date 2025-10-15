@@ -1,3 +1,4 @@
+
 import { prisma } from "../db";
 import { ClienteInput } from "../schemas/clienteSchema";
 
@@ -10,5 +11,6 @@ export const clienteModel = {
     findByEmail: (email: string) =>
         prisma.cliente.findUnique({
             where: {email}
+            
         })
 } 

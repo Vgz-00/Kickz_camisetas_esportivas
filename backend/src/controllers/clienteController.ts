@@ -47,19 +47,19 @@ export const loginCliente = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Informe email e senha" });
     }
 
-    // busca cliente pelo e-mail
+ 
     const cliente = await clienteModel.findByEmail(email);
     if (!cliente) {
       return res.status(401).json({ error: "E-mail ou senha inválidos" });
     }
 
-    // compara senha
+ 
     const senhaValida = await bcrypt.compare(senha, cliente.senha);
     if (!senhaValida) {
       return res.status(401).json({ error: "E-mail ou senha inválidos" });
     }
 
-    // gera token
+ 
     const token = jwt.sign(
       { id: cliente.id, email: cliente.email },
       process.env.JWT_KEY as string,

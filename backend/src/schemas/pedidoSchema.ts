@@ -2,7 +2,7 @@ import { StatusPedido } from "@prisma/client";
 import { z } from "zod";
 
 export const pedidoSchema = z.object({
-    clienteId: z.number().int(),
+    clienteId: z.string()
    
 
 });
