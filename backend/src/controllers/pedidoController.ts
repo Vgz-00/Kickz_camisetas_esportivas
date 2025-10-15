@@ -33,7 +33,7 @@ export const listPedido = async (req: Request, res: Response) => {
 
 export const listPedidosByCliente = async (req: Request, res: Response) => {
     try {
-        const clienteId = Number(req.params.clienteId);
+        const clienteId = (req.params.clienteId);
         const pedidos = await pedidoModel.listByCliente(clienteId);
         return res.status(200).json(pedidos);
     } catch (error) {
@@ -43,7 +43,7 @@ export const listPedidosByCliente = async (req: Request, res: Response) => {
 
 export const findPedidoPendente = async (req: Request, res: Response) => {
     try {
-        const clienteId = Number(req.params.clienteId);
+        const clienteId = (req.params.clienteId);
         const pedido = await pedidoModel.findPendente(clienteId);
         if (!pedido) {
             return res.status(404).json({ message: "Nenhum pedido pendente encontrado." });
