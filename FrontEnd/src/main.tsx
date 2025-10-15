@@ -10,7 +10,37 @@ import Layout from './Layout.tsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Cadastro from './Cadastro.tsx'
 
+import AdminLayout from './admin/AdminLayout.tsx';
+import AdminLogin from './admin/AdminLogin.tsx';            
+import AdminDashboard from './admin/AdminDashboard.tsx';    
+import AdminCamisas from './admin/AdminCamisa.tsx';          
+import AdminNovaCamisa from './admin/AdminNovaCamisa.tsx';                    
+import AdminCadAdmin from './admin/AdminCadastroAdm.tsx'; 
+
+
+
+
+
+
 const rotas = createBrowserRouter([
+  {
+
+    path: "/admin/login",
+    element: <AdminLogin/>,
+  },
+  
+  {
+    path: '/admin',
+    element: <AdminLayout />,
+    children: [
+      { index: true, element: <AdminDashboard /> },
+      { path: 'camisas', element: <AdminCamisas /> },
+      { path: 'cadastro/camisas', element: <AdminNovaCamisa /> },
+      { path: 'cadAdmin', element: <AdminCadAdmin /> },
+    ],
+  },
+  
+  
   {
     path: '/',
     element: <Layout />,
