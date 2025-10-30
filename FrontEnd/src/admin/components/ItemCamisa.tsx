@@ -17,12 +17,12 @@ export default function ItemCamisa({ camisa, camisas, setCamisas }: listaCamisaP
 
   async function excluirCamisa() {
     if (!admin || admin.nivel == 1) {
-      alert("Você não tem permissão para excluir veículos");
+      alert("Você não tem permissão para excluir camisas");
       return;
     }
 
     if (confirm(`Confirma a exclusão`)) {
-      const response = await fetch(`${apiUrl}/camisa/${camisa.id}`,
+      const response = await fetch(`${apiUrl}/camisas/${camisa.id}`,
         {
           method: "DELETE",
           headers: {
@@ -35,35 +35,36 @@ export default function ItemCamisa({ camisa, camisas, setCamisas }: listaCamisaP
       if (response.status == 200) {
         const camisasAtualizadas = camisas.filter(x => x.id != camisa.id)
         setCamisas(camisasAtualizadas)
-        alert("Carro excluído com sucesso")
+        alert("Camisa excluída com sucesso")
       } else {
-        alert("Erro... Carro não foi excluído")
+        alert("Erro... Camisa não foi excluída")
       }
     }
   }
 
   async function alterarCamisetaDestaque() {
+  const response = await fetch(`${apiUrl}/camisas/${camisa.id}/destaque`, {
+    method: "PATCH",
+    headers: {
+      "Content-type": "application/json",
+      Authorization: `Bearer ${admin.token}`
+    },
+    body: JSON.stringify({ destaque: !camisa.destaque }) // ✅ envia o valor invertido
+  });
 
-    const response = await fetch(`${apiUrl}/camisas/destacar/${camisa.id}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-type": "application/json",
-          Authorization: `Bearer ${admin.token}`
-        },
-      },
-    )
-
-    if (response.status == 200) {
-      const camisasAtualizadas = camisas.map(x => {
-        if (x.id == camisa.id) {
-          return { ...x, destaque: !x.destaque }
-        }
-        return x
-      })
-      setCamisas(camisasAtualizadas)
-    }
+  if (response.ok) {
+    const camisasAtualizadas = camisas.map(x => {
+      if (x.id === camisa.id) {
+        return { ...x, destaque: !x.destaque }
+      }
+      return x
+    })
+    setCamisas(camisasAtualizadas)
+  } else {
+    const erro = await response.json();
+    alert("Erro ao alterar destaque: " + erro.error);
   }
+}
 
   return (
       <tr key={camisa.id} className="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700">

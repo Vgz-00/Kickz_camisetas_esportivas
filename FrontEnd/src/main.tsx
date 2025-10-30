@@ -15,7 +15,9 @@ import AdminLogin from './admin/AdminLogin.tsx';
 import AdminDashboard from './admin/AdminDashboard.tsx';    
 import AdminCamisas from './admin/AdminCamisa.tsx';          
 import AdminNovaCamisa from './admin/AdminNovaCamisa.tsx';                    
-import AdminCadAdmin from './admin/AdminCadastroAdm.tsx'; 
+import AdminPedido from './admin/AdminPedido.tsx'
+import AdminAvaliacao from './admin/AdminAvaliacao.tsx'
+
 
 
 
@@ -35,8 +37,11 @@ const rotas = createBrowserRouter([
     children: [
       { index: true, element: <AdminDashboard /> },
       { path: 'camisas', element: <AdminCamisas /> },
-      { path: 'cadastro/camisas', element: <AdminNovaCamisa /> },
-      { path: 'cadAdmin', element: <AdminCadAdmin /> },
+      { path: 'cadastro', element: <AdminNovaCamisa /> },
+      { path: 'pedidos', element: <AdminPedido /> },
+      { path: 'avaliacoes', element: <AdminAvaliacao /> },
+     
+
     ],
   },
   
