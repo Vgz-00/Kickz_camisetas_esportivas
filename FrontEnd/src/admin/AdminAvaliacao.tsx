@@ -143,7 +143,6 @@ export default function AdminAvaliacao() {
               <th scope="col" className="px-6 py-3">Nota</th>
               <th scope="col" className="px-6 py-3">Comentário / Resposta</th> 
               <th scope="col" className="px-6 py-3">Visível</th> 
-              <th scope="col" className="px-6 py-3">Data</th>
               <th scope="col" className="px-6 py-3">Ações</th>
             </tr>
           </thead>

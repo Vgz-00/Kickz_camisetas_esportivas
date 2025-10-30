@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { FaReply, FaEye, FaEyeSlash } from "react-icons/fa"; 
+import { FaReply, FaEye, FaEyeSlash } from "react-icons/fa";
 import type { AvaliacaoType } from "../AdminAvaliacao";
-
 
 type ActionHandlers = {
   onResponder: (avaliacaoId: number, resposta: string) => Promise<void>;
@@ -15,25 +14,22 @@ type ItemAvaliacaoProps = {
   avaliacao: AvaliacaoType;
   avaliacoes: AvaliacaoType[];
   setAvaliacoes: React.Dispatch<React.SetStateAction<AvaliacaoType[]>>;
-} & ActionHandlers; 
+} & ActionHandlers;
 
 export default function ItemAvaliacao({
   avaliacao,
   onResponder,
   onAlternarVisibilidade,
 }: ItemAvaliacaoProps) {
-  
-  const [isResponding, setIsResponding] = useState(false); 
-  const [respostaText, setRespostaText] = useState(avaliacao.resposta || ""); 
-
-  
+  const [isResponding, setIsResponding] = useState(false);
+  const [respostaText, setRespostaText] = useState(avaliacao.resposta || "");
 
   const handleEnviarResposta = async () => {
     if (respostaText.trim() === "") {
       return alert("A resposta não pode estar vazia.");
     }
     await onResponder(avaliacao.id, respostaText.trim());
-    setIsResponding(false); 
+    setIsResponding(false);
   };
 
   const handleToggleVisibilidade = async () => {
@@ -41,19 +37,29 @@ export default function ItemAvaliacao({
     await onAlternarVisibilidade(avaliacao.id, newVisivel);
   };
 
+  const imagemValida =
+    avaliacao.camisa.foto && avaliacao.camisa.foto.startsWith("http")
+      ? avaliacao.camisa.foto
+      : "/defaultCamisa.png"; 
+
   return (
     <tr className="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700">
       <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
         {avaliacao.cliente.nome}
       </td>
+
       <td className="px-6 py-4 flex items-center gap-3">
         <img
-          src={avaliacao.camisa.foto}
+          src={imagemValida}
           alt={avaliacao.camisa.modelo}
           className="w-10 h-10 rounded object-cover"
+          onError={(e) =>
+            ((e.target as HTMLImageElement).src = "/default-camisa.png")
+          }
         />
         <span>{avaliacao.camisa.modelo}</span>
       </td>
+
       <td className="px-6 py-4 text-yellow-500 font-bold">
         {avaliacao.nota} ⭐
       </td>
@@ -63,7 +69,7 @@ export default function ItemAvaliacao({
           Comentário:
         </p>
         <p className="italic mb-2">{avaliacao.comentario}</p>
-        
+
         {(avaliacao.resposta || isResponding) && (
           <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-600 rounded">
             <p className="font-semibold text-blue-600 dark:text-blue-300">
@@ -88,7 +94,7 @@ export default function ItemAvaliacao({
                   <button
                     onClick={() => {
                       setIsResponding(false);
-                      setRespostaText(avaliacao.resposta || ""); // Reseta para o valor original se houver
+                      setRespostaText(avaliacao.resposta || "");
                     }}
                     className="bg-gray-400 hover:bg-gray-500 text-white text-xs font-bold py-1 px-3 rounded"
                   >
@@ -113,10 +119,6 @@ export default function ItemAvaliacao({
         </span>
       </td>
 
-      <td className="px-6 py-4">
-        {new Date(avaliacao.createdAt).toLocaleDateString("pt-BR")}
-      </td>
-      
       <td className="px-6 py-4 flex items-center gap-3">
         {!avaliacao.resposta && !isResponding && (
           <FaReply
@@ -138,7 +140,6 @@ export default function ItemAvaliacao({
             onClick={handleToggleVisibilidade}
           />
         )}
-       
       </td>
     </tr>
   );
