@@ -32,6 +32,4 @@ server.get('/', (req, res) => {
     res.send('API: Revenda de Camisetas esportivas')
 })
 
-server.listen(port, () => {
-    console.log(`Servidor rodando na porta: ${port}`)
-})
+export default server;
