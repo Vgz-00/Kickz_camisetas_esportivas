@@ -1,147 +1,235 @@
-import { useEffect, useState } from "react"
-import { VictoryPie, VictoryLabel, VictoryTheme } from "victory"
-import { Card, CardContent } from "../components/ui/card"
+import { useEffect, useState } from "react";
+import { VictoryPie, VictoryLabel, VictoryTheme, VictoryTooltip } from "victory";
+import { Card, CardContent } from "../components/ui/card";
+import { useAdminStore } from "./context/AdminContext"; 
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
-const apiUrl = import.meta.env.VITE_API_URL
+const apiUrl = import.meta.env.VITE_API_URL;
 
 type DadosGeraisType = {
-  clientes: number
-  pedidos: number
-  camisas: number
-  totalVendas: number
-}
+  totais: {
+    clientes: number;
+    pedidos: number;
+    camisas: number;
+  };
+ 
+  
+};
 
 type CamisasPorMarcaType = {
-  marca: string
-  num: number
-}
+  marca: string;
+  totalCamisas: number; 
+};
 
-type CamisaMaisVendidaType = {
-  camisaId: number
-  modelo: string
-  foto: string
-  quantidadeVendida: number
-}
+type CamisaMaisVendidaItem = {
+  camisa: {
+    id: number;
+    modelo: string;
+    preco: number;
+    marca: { nome: string };
+  };
+  totalVendido: number;
+};
 
 export default function AdminDashboard() {
-  const [dados, setDados] = useState<DadosGeraisType>({} as DadosGeraisType)
-  const [camisasMarca, setCamisasMarca] = useState<CamisasPorMarcaType[]>([])
-  const [maisVendidas, setMaisVendidas] = useState<CamisaMaisVendidaType[]>([])
+  const { admin, deslogaAdmin } = useAdminStore(); 
+  const navigate = useNavigate();
+
+  const [dados, setDados] = useState<DadosGeraisType>({
+    totais: { clientes: 0, pedidos: 0, camisas: 0 },
+   
+  });
+  const [camisasMarca, setCamisasMarca] = useState<CamisasPorMarcaType[]>([]);
+  const [maisVendidas, setMaisVendidas] = useState<CamisaMaisVendidaItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchComToken = (url: string) => {
+    if (!admin.token) {
+        throw new Error("Token de administrador ausente.");
+    }
+
+    return fetch(url, {
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${admin.token}`, 
+        },
+    });
+  };
 
   useEffect(() => {
     async function carregarDados() {
-      const [resGerais, resMarcas, resVendidas] = await Promise.all([
-        fetch(`${apiUrl}/dashboard/gerais`),
-        fetch(`${apiUrl}/dashboard/camisasPorMarca`),
-        fetch(`${apiUrl}/dashboard/camisasMaisVendidas`)
-      ])
+        setLoading(true);
+        
+        if (!admin.token) {
+            toast.error("Sessão expirada. Faça login novamente.");
+            navigate("/admin/login", { replace: true });
+            return;
+        }
 
-      const dadosGerais = await resGerais.json()
-      const dadosMarcas = await resMarcas.json()
-      const dadosVendidas = await resVendidas.json()
+        try {
+            const [resGerais, resMarcas, resVendidas] = await Promise.all([
+                fetchComToken(`${apiUrl}/dashboard/gerais`),
+                fetchComToken(`${apiUrl}/dashboard/camisasMarca`), 
+                fetchComToken(`${apiUrl}/dashboard/camisasMaisVendidas`),
+            ]);
 
-      setDados(dadosGerais)
-      setCamisasMarca(dadosMarcas)
-      setMaisVendidas(dadosVendidas)
+            const handleAuthError = (response: Response) => {
+                if (response.status === 401) {
+                    deslogaAdmin();
+                    navigate("/admin/login", { replace: true });
+                    toast.error("Não autorizado! Token expirado ou inválido.");
+                    throw new Error("401 Unauthorized"); 
+                }
+            };
+            
+            handleAuthError(resGerais);
+            handleAuthError(resMarcas);
+            handleAuthError(resVendidas);
+
+            const dadosGerais = await resGerais.json();
+            const dadosMarcas = await resMarcas.json();
+            const dadosVendidas = await resVendidas.json();
+
+            setDados({
+                totais: dadosGerais.totais,
+            });
+            setCamisasMarca(dadosMarcas);
+            setMaisVendidas(dadosVendidas);
+
+        } catch (error) {
+            console.error("Erro ao carregar dados do dashboard:", error);
+            if (error !== "401 Unauthorized") {
+                 toast.error("Falha ao carregar dados. Verifique a API.");
+            }
+        } finally {
+            setLoading(false);
+        }
     }
 
-    carregarDados()
-  }, [])
-
+    carregarDados();
+  }, [admin.token, navigate, deslogaAdmin]); 
   const dadosMarcas = camisasMarca.map(item => ({
     x: item.marca,
-    y: item.num
-  }))
+    y: item.totalCamisas, 
+  }));
+
+  const dadosMaisVendidas = maisVendidas.map(item => ({
+  x: item.camisa.modelo, 
+  y: item.totalVendido,
+}));
+  
+  if (loading) {
+    return (
+        <div className="container mx-auto mt-24 text-center">
+            <h2 className="text-3xl font-bold mb-6">Carregando Dashboard...</h2>
+            <p>Aguarde, verificando dados e autenticação.</p>
+        </div>
+    );
+  }
+  
+  const coresGraficos = [
+  "#4f46e5", "#f59e0b", "#10b981", "#ef4444", "#3b82f6", "#f97316", "#14b8a6", "#b91c1c", "#6366f1", "#f43f5e"
+];
 
   return (
-    <div className="container mx-auto mt-24">
-      <h2 className="text-3xl font-bold mb-6 text-center">Visão Geral do Sistema</h2>
+  <div className="container mx-auto mt-24 px-4">
+    <h2 className="text-3xl font-bold mb-8 text-center">Visão Geral do Sistema</h2>
 
-      {/* Cards de Resumo */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <Card className="border-blue-600">
-          <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-blue-700">{dados.clientes}</div>
-            <p className="text-gray-600 dark:text-gray-300">Clientes</p>
+    <div className="flex justify-center mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <Card className="bg-gray-100 shadow-md border border-gray-200">
+          <CardContent className="p-6 text-center">
+            <div className="text-4xl font-bold text-blue-700">{dados.totais.clientes}</div>
+            <p className="text-gray-700 mt-2 font-semibold">Clientes</p>
           </CardContent>
         </Card>
 
-        <Card className="border-green-600">
-          <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-green-700">{dados.pedidos}</div>
-            <p className="text-gray-600 dark:text-gray-300">Pedidos</p>
+        <Card className="bg-gray-100 shadow-md border border-gray-200">
+          <CardContent className="p-6 text-center">
+            <div className="text-4xl font-bold text-green-700">{dados.totais.pedidos}</div>
+            <p className="text-gray-700 mt-2 font-semibold">Pedidos</p>
           </CardContent>
         </Card>
 
-        <Card className="border-yellow-600">
-          <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-yellow-700">{dados.camisas}</div>
-            <p className="text-gray-600 dark:text-gray-300">Camisas</p>
+        <Card className="bg-gray-100 shadow-md border border-gray-200">
+          <CardContent className="p-6 text-center">
+            <div className="text-4xl font-bold text-yellow-700">{dados.totais.camisas}</div>
+            <p className="text-gray-700 mt-2 font-semibold">Camisas</p>
           </CardContent>
         </Card>
-
-        <Card className="border-red-600">
-          <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-red-700">
-              R$ {dados.totalVendas?.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-            </div>
-            <p className="text-gray-600 dark:text-gray-300">Total de Vendas</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Gráficos */}
-      <div className="flex flex-wrap justify-center gap-10">
-        <svg viewBox="30 55 400 400" className="max-w-sm">
-          <VictoryPie
-            standalone={false}
-            width={400}
-            height={400}
-            data={dadosMarcas}
-            innerRadius={50}
-            labelRadius={80}
-            theme={VictoryTheme.clean}
-            style={{
-              labels: {
-                fontSize: 10,
-                fill: "#fff",
-                fontFamily: "Arial",
-                fontWeight: "bold"
-              }
-            }}
-          />
-          <VictoryLabel
-            textAnchor="middle"
-            style={{
-              fontSize: 12,
-              fill: "#f00",
-              fontFamily: "Arial",
-              fontWeight: "bold"
-            }}
-            x={200}
-            y={200}
-            text={["Camisas", "por Marca"]}
-          />
-        </svg>
-
-        <div className="max-w-md w-full">
-          <h3 className="text-xl font-semibold mb-3 text-center">Top 5 Camisas Mais Vendidas</h3>
-          <div className="grid gap-3">
-            {maisVendidas.map((c) => (
-              <div
-                key={c.camisaId}
-                className="flex items-center gap-3 border p-3 rounded-lg bg-gray-50 dark:bg-gray-800"
-              >
-                <img src={c.foto} alt={c.modelo} className="w-16 h-16 rounded object-cover" />
-                <div className="flex-1">
-                  <p className="font-bold">{c.modelo}</p>
-                  <p className="text-sm text-gray-500">Vendidas: {c.quantidadeVendida}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
-  )
+
+    <div className="flex flex-col md:flex-row justify-center items-center gap-8">
+      <div className="bg-gray-100 shadow-md p-6 rounded-lg flex justify-center items-center">
+    {camisasMarca.length > 0 ? (
+      <svg viewBox="0 0 450 450" className="w-96 h-96">
+        <VictoryPie
+          standalone={false}
+          width={450}
+          height={450}
+          data={dadosMarcas}
+          innerRadius={60}
+          labelRadius={110}
+          colorScale={coresGraficos}
+          theme={VictoryTheme.material}
+          labels={({ datum }) => `${datum.x}: ${datum.y}`}
+          labelComponent={<VictoryTooltip />}
+          style={{
+            labels: { fontSize: 12, fill: "#000", fontWeight: "bold" },
+            data: { cursor: "pointer" }
+          }}
+        />
+        <VictoryLabel
+          textAnchor="middle"
+          style={{ fontSize: 16, fill: "#f00", fontWeight: "bold" }}
+          x={225}
+          y={225}
+          text={["Camisas", "por Marca"]}
+        />
+      </svg>
+    ) : (
+      <div className="flex items-center justify-center w-96 h-96 text-gray-500">
+        Gráfico de Marcas indisponível
+      </div>
+    )}
+  </div>
+
+      <div className="bg-gray-100 shadow-md p-6 rounded-lg flex justify-center items-center">
+    {maisVendidas.length > 0 ? (
+      <svg viewBox="0 0 450 450" className="w-96 h-96">
+        <VictoryPie
+          standalone={false}
+          width={450}
+          height={450}
+          data={dadosMaisVendidas}
+          innerRadius={60}
+          labelRadius={110}
+          colorScale={coresGraficos}
+          labels={({ datum }) => `${datum.x}: ${datum.y}`}
+          labelComponent={<VictoryTooltip />}
+          style={{
+            labels: { fontSize: 12, fill: "#000", fontWeight: "bold" },
+            data: { cursor: "pointer" }
+          }}
+        />
+        <VictoryLabel
+          textAnchor="middle"
+          style={{ fontSize: 16, fill: "#f00", fontWeight: "bold" }}
+          x={225}
+          y={225}
+          text={["Top Camisas", "Vendidas"]}
+        />
+      </svg>
+      ) : (
+      <div className="flex items-center justify-center w-96 h-96 text-gray-500">
+        Gráfico de Mais Vendidas indisponível
+      </div>
+      )}
+    </div>
+  </div>
+</div>
+);
+
 }

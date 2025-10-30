@@ -16,7 +16,7 @@ export default function Cadastro() {
   const navigate = useNavigate()
 
   async function cadastrar(data: Inputs) {
-    const response = await fetch(`${apiUrl}/clientes`, {
+    const response = await fetch(`${apiUrl}/clientes/cadastrar`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)

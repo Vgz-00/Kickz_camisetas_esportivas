@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { toast, Toaster } from "sonner";
 import { useAdminStore } from "./context/AdminContext";
 
+
 import { useNavigate } from "react-router-dom";
 
 const apiUrl = import.meta.env.VITE_API_URL 
@@ -27,12 +28,18 @@ export default function AdminLogin() {
     async function verificaLogin(data: Inputs) {
        const response = await fetch(`${apiUrl}/admins/login`, {
         method: "POST",
-        headers: { "content-type": "Application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: data.email, senha: data.senha })
        })
        
        if (response.status == 200) {
-          const admin = await response.json()
+          const resultado = await response.json()
+          
+          const admin = {
+          ...resultado.admin,
+          token: resultado.token,
+               };
+
           logaAdmin(admin)
           navigate("/admin", { replace: true })
        }  else if (response.status == 400) {
@@ -41,29 +48,67 @@ export default function AdminLogin() {
     }
     
     return (
-        <main className="max-w-screen-xl flex flex-col items-center mx-auto p-6">
-      <img src="../../fusca.png" alt="Revenda" style={{ width: 240 }}
-        className="d-block" />
-      <div className="max-w-sm">
-        <h1 className="text-3xl font-bold my-8">Admin: Revenda Herbie</h1>
-        <form className="max-w-sm mx-auto"
-          onSubmit={handleSubmit(verificaLogin)} >
-          <div className="mb-5">
-            <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">E-mail:</label>
-            <input type="email" id="email" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              {...register("email")}
-              required />
+    <section className="flex justify-center items-center h-screen bg-gradient-to-b from-blue-100 to-blue-300">
+      <div className="w-full max-w-sm p-6 bg-white border border-blue-200 rounded-2xl shadow-lg sm:p-8 md:p-10">
+        <form className="space-y-6" onSubmit={handleSubmit(verificaLogin)}>
+          <div className="flex flex-col items-center">
+            <img
+              src="../LogoTesteAdm.png"
+              alt="Logo KicksCamisetas"
+              className="w-28 mb-2"
+            />
+            <h5 className="text-2xl font-bold text-blue-800">
+              Login Administrativo
+            </h5>
+            <p className="text-sm text-gray-600">
+              Acesse o painel de controle
+            </p>
           </div>
-          <div className="mb-5">
-            <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Senha:</label>
-            <input type="password" id="password" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              {...register("senha")}
-              required />
+
+          <div>
+            <label className="block mb-2 text-sm font-medium text-gray-900">
+              E-mail
+            </label>
+            <input
+              type="email"
+              placeholder="admin@empresa.com"
+              {...register("email", { required: true })}
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+              focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 
+              placeholder-gray-400"
+              required
+            />
           </div>
-          <button type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Entrar</button>
+
+          <div>
+            <label className="block mb-2 text-sm font-medium text-gray-900">
+              Senha
+            </label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              {...register("senha", { required: true })}
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+              focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 
+              placeholder-gray-400"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full text-white bg-blue-700 hover:bg-blue-800 
+            focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium 
+            rounded-lg text-sm px-5 py-2.5 text-center transition-all duration-150"
+          >
+            Entrar
+          </button>
+
+         
         </form>
       </div>
+
       <Toaster richColors position="top-right" />
-    </main>
-  );  
+    </section>
+  );
 }

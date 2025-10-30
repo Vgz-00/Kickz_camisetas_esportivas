@@ -69,7 +69,6 @@ export default function ItemPedido({ pedido, pedidos, setPedidos }: ListaPedidoP
 
   return (
     <>
-      {/* Linha principal do pedido */}
       <tr
         key={pedido.id}
         className="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700"
@@ -114,7 +113,6 @@ export default function ItemPedido({ pedido, pedidos, setPedidos }: ListaPedidoP
         </td>
       </tr>
 
-      {/* Linha secundária (itens do pedido) */}
       {aberto && (
         <tr className="bg-gray-100 dark:bg-gray-800 border-b dark:border-gray-700">
           <td colSpan={5} className="px-6 py-4">
