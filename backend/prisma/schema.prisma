@@ -20,6 +20,7 @@ model Cliente {
   senha          String       @db.VarChar(60)  
   pedido         Pedido[]
   logs           Log[]
+  interacoes     AvaliacaoCamisa[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt() 
  
@@ -30,10 +31,10 @@ model Admin {
 
   id             String       @db.VarChar(36) @id @default(uuid())
   nome           String       @db.VarChar(100)
-  email          String       @db.VarChar(255)  
+  email          String       @db.VarChar(255) @unique  
   senha          String       @db.VarChar(60)
   nivel          Int          @db.SmallInt @default(2) 
-  logs  Log[]
+  logs           Log[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt()
   camisas       Camisa[]
@@ -48,7 +49,6 @@ model Log{
   cliente      Cliente?  @relation(fields: [clienteId], references: [id])
   adminId      String?
   admin        Admin?  @relation(fields: [adminId], references: [id])
-  status       PadraoLogs
   descricao    String
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt()
@@ -64,6 +64,7 @@ model Camisa {
   marcaId        Int
   marca          Marca        @relation(fields: [marcaId], references: [id])
   itens          ItensPedido[]
+  interacoes     AvaliacaoCamisa[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt()
   admin          Admin?  @relation(fields: [adminId], references: [id]) 
@@ -77,6 +78,23 @@ model Marca {
   camisa         Camisa[]
   foto           String
   @@map("marcas")  
+}
+
+model AvaliacaoCamisa {
+  id          String   @id @default(uuid())
+  clienteId   String
+  cliente     Cliente  @relation(fields: [clienteId], references: [id])
+  camisaId    Int
+  camisa      Camisa   @relation(fields: [camisaId], references: [id])
+  nota        Int?     
+  comentario  String?  
+  resposta    String? 
+  visivel     Boolean   @default(true) 
+
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt()
+
+  @@map("avaliacoes")
 }
 
 enum Categoria {
@@ -117,9 +135,5 @@ enum StatusPedido {
   CANCELADO
 }
 
-enum PadraoLogs {
-  CRIAR_PEDIDO
-  ATUALIZAR_STATUS
-  LOGIN
-}
+
 
